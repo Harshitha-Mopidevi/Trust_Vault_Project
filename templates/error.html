@@ -1,0 +1,25 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}
+    {{ code }} · {{ title }}
+{% endblock %}
+
+{% block content %}
+
+<section class="panel empty-state">
+
+    <span>!</span>
+
+    <h2>{{ title }}</h2>
+
+    <p>{{ message }}</p>
+
+    <a class="btn primary"
+       href="{{ url_for('documents.dashboard') if current_user.is_authenticated else url_for('auth.login') }}">
+        Return
+    </a>
+
+</section>
+
+{% endblock %}

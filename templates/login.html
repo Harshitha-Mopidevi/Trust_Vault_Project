@@ -1,0 +1,101 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Sign in · TrustVault{% endblock %}
+
+{% block content %}
+
+<div class="auth-layout">
+
+    <!-- Left Side: Branding -->
+    <div class="auth-brand">
+
+        <a class="brand" href="#">
+            <span class="brand-mark">◇</span>
+            <span>
+                TrustVault
+                <small>Secure. Share. Control.</small>
+            </span>
+        </a>
+
+        <div class="auth-pitch">
+
+            <div class="shield">♢</div>
+
+            <h2>Your trusted document management platform</h2>
+
+            <p>
+                Store, share and manage your important documents securely
+                with role-based access and complete control.
+            </p>
+
+            <div class="feature-line">▣ &nbsp; Secure Storage</div>
+            <div class="feature-line">♧ &nbsp; Role-Based Access</div>
+            <div class="feature-line">◷ &nbsp; Activity Tracking</div>
+
+        </div>
+
+    </div>
+
+    <!-- Right Side: Login Form -->
+    <div class="auth-form">
+
+        <span class="eyebrow">WELCOME BACK</span>
+
+        <h2>Sign in to TrustVault</h2>
+
+        <p class="muted">
+            Access your secure document workspace.
+        </p>
+
+        <form method="post">
+
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <label for="email">Email address</label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                required
+                autocomplete="email"
+            >
+
+            <label for="password">Password</label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter your password"
+                required
+                autocomplete="current-password"
+            >
+
+            <label class="check">
+                <input type="checkbox" name="remember">
+                Remember me
+            </label>
+
+            <button type="submit" class="btn primary full">
+                Login to workspace <span>→</span>
+            </button>
+
+        </form>
+
+        <p class="auth-foot">
+            Don't have an account?
+            <a href="{{ url_for('auth.register') }}">Create account</a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

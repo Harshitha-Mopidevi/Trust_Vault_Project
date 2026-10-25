@@ -1,0 +1,93 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}Profile & Security{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Your profile</h2>
+        <p class="muted">
+            Update your account details and password.
+        </p>
+    </div>
+</div>
+
+<section class="panel profile-panel">
+
+    <form method="post" enctype="multipart/form-data">
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <!-- Profile Image -->
+        <label for="profile_image">
+            Profile image (PNG, JPG, JPEG, WEBP)
+        </label>
+
+        <input
+            type="file"
+            id="profile_image"
+            name="profile_image"
+            accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+        >
+
+        <!-- Full Name -->
+        <label for="name">Full name</label>
+
+        <input
+            type="text"
+            id="name"
+            name="name"
+            value="{{ current_user.name }}"
+            required
+        >
+
+        <!-- Email Address -->
+        <label for="email">Email address</label>
+
+        <input
+            type="email"
+            id="email"
+            value="{{ current_user.email }}"
+            disabled
+        >
+
+        <!-- Current Password -->
+        <label for="current_password">
+            Current password
+            <small>(required to change password)</small>
+        </label>
+
+        <input
+            type="password"
+            id="current_password"
+            name="current_password"
+            autocomplete="current-password"
+        >
+
+        <!-- New Password -->
+        <label for="new_password">New password</label>
+
+        <input
+            type="password"
+            id="new_password"
+            name="new_password"
+            minlength="8"
+            autocomplete="new-password"
+        >
+
+        <!-- Save Changes -->
+        <button type="submit" class="btn primary">
+            Save changes
+        </button>
+
+    </form>
+
+</section>
+
+{% endblock %}

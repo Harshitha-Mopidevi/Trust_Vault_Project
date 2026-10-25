@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Create account · TrustVault{% endblock %}
+
+{% block content %}
+
+<div class="auth-layout">
+
+    <!-- Left branding panel -->
+    <div class="auth-brand">
+
+        <a class="brand" href="{{ url_for('auth.login') }}">
+            <span class="brand-mark">◇</span>
+
+            <span>
+                TrustVault
+                <small>Secure. Share. Control.</small>
+            </span>
+        </a>
+
+        <div class="auth-pitch">
+
+            <div class="shield">♢</div>
+
+            <h2>Create your secure workspace</h2>
+
+            <p>
+                Keep important files organized and share them only
+                with the people you choose.
+            </p>
+
+            <div class="feature-line">
+                ▣ &nbsp; Private file storage
+            </div>
+
+            <div class="feature-line">
+                ♧ &nbsp; Permission-based sharing
+            </div>
+
+            <div class="feature-line">
+                ◷ &nbsp; Account activity tracking
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Registration form -->
+    <div class="auth-form">
+
+        <span class="eyebrow">GET STARTED</span>
+
+        <h2>Create account</h2>
+
+        <p class="muted">
+            Create your TrustVault account and select a role.
+        </p>
+
+        <form method="post">
+
+            <!-- CSRF protection -->
+            <input
+                type="hidden"
+                name="csrf_token"
+                value="{{ csrf_token() }}"
+            >
+
+            <!-- Full name -->
+            <label for="name">Full name</label>
+
+            <input
+                type="text"
+                id="name"
+                name="name"
+                placeholder="Your full name"
+                required
+                maxlength="100"
+                autocomplete="name"
+            >
+
+
+            <!-- Role selection -->
+            <label for="role">Select role</label>
+
+            <select
+                id="role"
+                name="role"
+                required
+            >
+                <option value="owner" selected>
+                    Owner
+                </option>
+
+                <option value="viewer">
+                    Viewer
+                </option>
+
+                <option value="admin">
+                    Admin
+                </option>
+            </select>
+
+            <small class="muted">
+                Owners manage their own documents.
+                Viewers access documents shared with them.
+                Admins manage users and documents.
+            </small>
+
+
+            <!-- Email -->
+            <label for="email">Email address</label>
+
+            <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="you@example.com"
+                required
+                maxlength="255"
+                autocomplete="email"
+            >
+
+
+            <!-- Password -->
+            <label for="password">Password</label>
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                minlength="8"
+                placeholder="At least 8 characters"
+                required
+                autocomplete="new-password"
+            >
+
+
+            <!-- Confirm password -->
+            <label for="confirm_password">Confirm password</label>
+
+            <input
+                type="password"
+                id="confirm_password"
+                name="confirm_password"
+                minlength="8"
+                placeholder="Repeat password"
+                required
+                autocomplete="new-password"
+            >
+
+
+            <!-- Submit -->
+            <button type="submit" class="btn primary full">
+                Create account
+                <span>→</span>
+            </button>
+
+        </form>
+
+
+        <!-- Login link -->
+        <p class="auth-foot">
+            Already registered?
+            <a href="{{ url_for('auth.login') }}">Sign in</a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

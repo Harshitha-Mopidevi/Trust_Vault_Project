@@ -1,0 +1,261 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>{% block title %}TrustVault{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    {% if current_user.is_authenticated %}
+
+    <!-- ==============================
+         SIDEBAR
+    =============================== -->
+
+    <aside class="sidebar">
+
+        <!-- Brand -->
+        <a class="brand" href="{{ url_for('documents.dashboard') }}">
+
+            <span class="brand-mark">◇</span>
+
+            <span>
+                TrustVault
+                <small>Secure. Share. Control.</small>
+            </span>
+
+        </a>
+
+
+        <!-- Navigation -->
+        <nav>
+
+            <a href="{{ url_for('documents.dashboard') }}">
+                ⌂ <span>Dashboard</span>
+            </a>
+
+            <a href="{{ url_for('documents.my_documents') }}">
+                ▤ <span>My Documents</span>
+            </a>
+
+            {% if current_user.role in ['owner', 'admin'] %}
+
+            <a href="{{ url_for('documents.upload') }}">
+                ⇧ <span>Upload Documents</span>
+            </a>
+
+            {% endif %}
+
+            <a href="{{ url_for('documents.search_documents') }}">
+                ⌕ <span>Search Documents</span>
+            </a>
+
+            <a href="{{ url_for('documents.categories') }}">
+                ▦ <span>Categories</span>
+            </a>
+
+            {% if current_user.role == 'admin' %}
+
+            <a href="{{ url_for('documents.activity_logs') }}">
+                ◷ <span>Activity Logs</span>
+            </a>
+
+            <a href="{{ url_for('admin.dashboard') }}">
+                ⚙ <span>Admin Console</span>
+            </a>
+
+            {% endif %}
+
+            <a href="{{ url_for('auth.profile') }}">
+                ♙ <span>Profile</span>
+            </a>
+
+        </nav>
+
+
+        <!-- ==============================
+             SIDEBAR USER PROFILE
+        =============================== -->
+
+        <div class="sidebar-bottom">
+
+            {% if current_user.profile_image %}
+
+            <img
+                class="avatar avatar-photo"
+                src="{{ url_for(
+                    'static',
+                    filename='profile_images/' ~ current_user.profile_image
+                ) }}"
+                alt="Profile">
+
+            {% else %}
+
+            <span class="avatar">
+                {{ current_user.name[:1]|upper }}
+            </span>
+
+            {% endif %}
+
+
+            <div class="user-label">
+
+                {{ current_user.name }}
+
+                <small>
+                    {{ current_user.role|title }}
+                </small>
+
+            </div>
+
+
+            <!-- Sidebar Sign Out -->
+            <form
+                action="{{ url_for('auth.logout') }}"
+                method="post">
+
+                <input
+                    type="hidden"
+                    name="csrf_token"
+                    value="{{ csrf_token() }}">
+
+                <button
+                    class="logout"
+                    type="submit"
+                    title="Sign Out"
+                    aria-label="Sign Out">
+
+                    ↗
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </aside>
+
+    {% endif %}
+
+
+    <!-- ==============================
+         MAIN CONTENT
+    =============================== -->
+
+    <main class="{{ 'main-with-sidebar' if current_user.is_authenticated else 'auth-main' }}">
+
+        {% if current_user.is_authenticated %}
+
+        <!-- ==============================
+             TOP HEADER
+        =============================== -->
+
+        <header class="topbar">
+
+            <!-- Page Heading -->
+            <div class="topbar-heading">
+
+                <span class="eyebrow">
+                    SECURE DOCUMENT WORKSPACE
+                </span>
+
+                <h1>
+                    {% block page_heading %}Dashboard{% endblock %}
+                </h1>
+
+            </div>
+
+
+            <!-- ==============================
+                 CLICKABLE PROFILE
+            =============================== -->
+
+            <a
+                href="{{ url_for('auth.profile') }}"
+                class="top-user profile-link"
+                title="View Profile"
+                aria-label="Open your profile">
+
+                <!-- Profile Image or Initial -->
+
+                {% if current_user.profile_image %}
+
+                <img
+                    class="avatar avatar-photo"
+                    src="{{ url_for(
+                        'static',
+                        filename='profile_images/' ~ current_user.profile_image
+                    ) }}"
+                    alt="Profile">
+
+                {% else %}
+
+                <span class="avatar">
+                    {{ current_user.name[:1]|upper }}
+                </span>
+
+                {% endif %}
+
+
+                <!-- Username and Role -->
+
+                <span class="top-user-info">
+
+                    <span class="top-user-name">
+                        {{ current_user.name }}
+                    </span>
+
+                    <span class="top-user-role">
+                        {{ current_user.role|title }}
+                    </span>
+
+                </span>
+
+            </a>
+
+        </header>
+
+        {% endif %}
+
+
+        <!-- ==============================
+             FLASH MESSAGES AND PAGE CONTENT
+        =============================== -->
+
+        <section class="page-content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% for category, message in messages %}
+
+                <div class="alert {{ category }}">
+                    {{ message }}
+                </div>
+
+                {% endfor %}
+
+            {% endwith %}
+
+
+            {% block content %}
+
+            {% endblock %}
+
+        </section>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

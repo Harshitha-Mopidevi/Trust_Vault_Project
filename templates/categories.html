@@ -1,0 +1,41 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}Categories{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Browse by category</h2>
+        <p class="muted">Find related documents faster.</p>
+    </div>
+</div>
+
+<div class="category-grid">
+
+    {% for name, count in counts %}
+
+    <a class="category-card"
+       href="{{ url_for('documents.my_documents', category=name) }}">
+
+        <span class="stat-icon blue">▦</span>
+
+        <div>
+            <strong>{{ name }}</strong>
+            <small>{{ count }} document(s)</small>
+        </div>
+
+        <span class="arrow">→</span>
+
+    </a>
+
+    {% else %}
+
+    <p class="muted">No document categories available yet.</p>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}

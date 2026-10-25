@@ -1,0 +1,145 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}Upload Documents{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Add a new document</h2>
+        <p class="muted">
+            Upload files to your private workspace and control who can access them.
+        </p>
+    </div>
+</div>
+
+<section class="panel upload-panel">
+
+    <form method="post" enctype="multipart/form-data">
+
+        <input
+            type="hidden"
+            name="csrf_token"
+            value="{{ csrf_token() }}"
+        >
+
+        <div class="upload-grid">
+
+            <!-- File Upload Area -->
+            <div>
+
+                <label class="dropzone" id="dropzone">
+
+                    <input
+                        id="fileInput"
+                        type="file"
+                        name="file"
+                        required
+                    >
+
+                    <span class="upload-cloud">⇧</span>
+
+                    <strong>Drag and drop your file here</strong>
+
+                    <span>or <u>browse files</u></span>
+
+                    <small>
+                        PDF, DOCX, XLSX, PPTX, TXT, CSV, images · Max 16 MB
+                    </small>
+
+                    <span id="fileName" class="file-selected"></span>
+
+                </label>
+
+            </div>
+
+            <!-- Document Details -->
+            <div class="form-fields">
+
+                <label for="title">
+                    Document title <b>*</b>
+                </label>
+
+                <input
+                    type="text"
+                    id="title"
+                    name="title"
+                    placeholder="e.g. Project Proposal"
+                    required
+                    maxlength="180"
+                >
+
+                <label for="category">
+                    Category <b>*</b>
+                </label>
+
+                <select id="category" name="category" required>
+
+                    {% for c in categories %}
+                        <option value="{{ c }}">{{ c }}</option>
+                    {% endfor %}
+
+                </select>
+
+                <!-- Access Permissions -->
+                <div class="notice">
+
+                    <strong>Access permissions</strong>
+
+                    <p>
+                        New documents are private to you by default.
+                        Share them later with selected users and grant
+                        download access only when needed.
+                    </p>
+
+                </div>
+
+                <button type="submit" class="btn primary full">
+                    ⇧ &nbsp; Upload document
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</section>
+
+<script>
+    const fileInput = document.getElementById("fileInput");
+    const fileName = document.getElementById("fileName");
+    const dropzone = document.getElementById("dropzone");
+
+    // Display the selected filename
+    fileInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+            fileName.textContent = "Selected: " + this.files[0].name;
+        } else {
+            fileName.textContent = "";
+        }
+    });
+
+    // Allow drag-and-drop file selection
+    dropzone.addEventListener("dragover", function (event) {
+        event.preventDefault();
+        dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", function () {
+        dropzone.classList.remove("dragover");
+    });
+
+    dropzone.addEventListener("drop", function (event) {
+        event.preventDefault();
+        dropzone.classList.remove("dragover");
+
+        if (event.dataTransfer.files.length > 0) {
+            fileInput.files = event.dataTransfer.files;
+            fileInput.dispatchEvent(new Event("change"));
+        }
+    });
+</script>
+
+{% endblock %}

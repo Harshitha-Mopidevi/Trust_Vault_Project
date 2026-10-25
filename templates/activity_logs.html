@@ -1,0 +1,74 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}
+Activity Logs
+{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Security activity</h2>
+        <p class="muted">
+            Admin-only audit trail for workspace actions.
+        </p>
+    </div>
+
+    <span class="tag blue-tag">
+        Admin access only
+    </span>
+</div>
+
+<section class="panel">
+
+    <div class="table-wrap">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Date &amp; time</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for log in logs %}
+
+                <tr>
+                    <td>
+                        {{ log.user.name if log.user else 'System' }}
+                    </td>
+
+                    <td>
+                        <span class="tag">
+                            {{ log.action }}
+                        </span>
+                    </td>
+
+                    <td>{{ log.details }}</td>
+
+                    <td>
+                        {{ log.created_at.strftime('%b %d, %Y %H:%M:%S') }}
+                    </td>
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="4" class="empty-cell">
+                        No activity yet.
+                    </td>
+                </tr>
+
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,128 @@
+
+{% extends 'base.html' %}
+
+{% block page_heading %}Search Documents{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Find a document</h2>
+        <p class="muted">
+            Search by title, category, owner, or upload date.
+        </p>
+    </div>
+</div>
+
+<section class="panel">
+
+    <!-- Search Filters -->
+    <form class="toolbar search-toolbar" method="get">
+
+        <input
+            type="text"
+            name="q"
+            value="{{ request.args.get('q', '') }}"
+            placeholder="Document name…"
+        >
+
+        <select name="category">
+            <option value="">All categories</option>
+
+            {% for c in categories %}
+                <option
+                    value="{{ c }}"
+                    {% if request.args.get('category') == c %}selected{% endif %}
+                >
+                    {{ c }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <input
+            type="text"
+            name="owner"
+            value="{{ request.args.get('owner', '') }}"
+            placeholder="Owner name"
+        >
+
+        <input
+            type="date"
+            name="date"
+            value="{{ request.args.get('date', '') }}"
+        >
+
+        <button type="submit" class="btn primary">
+            Search
+        </button>
+
+    </form>
+
+    <!-- Search Results -->
+    <div class="table-wrap">
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Category</th>
+                    <th>Owner</th>
+                    <th>Uploaded</th>
+                    <th>Open</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for doc in docs %}
+
+                <tr>
+
+                    <td>
+                        {{ doc.title }}
+                        <small class="subline">
+                            {{ doc.original_name }}
+                        </small>
+                    </td>
+
+                    <td>{{ doc.category }}</td>
+
+                    <td>{{ doc.owner.name }}</td>
+
+                    <td>
+                        {{ doc.uploaded_at.strftime('%b %d, %Y') }}
+                    </td>
+
+                    <td>
+                        <a
+                            class="icon-btn"
+                            href="{{ url_for('documents.view_document', doc_id=doc.id) }}"
+                            aria-label="Open {{ doc.title }}"
+                        >
+                            ↗
+                        </a>
+                    </td>
+
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="5" class="empty-cell">
+                        No matching documents.
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</section>
+
+{% endblock %}

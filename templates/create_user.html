@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block page_heading %}Create User Account{% endblock %}
+
+{% block content %}
+<div class="welcome-row">
+    <div>
+        <h2>Create user account</h2>
+        <p class="muted">Add a new Admin, Owner, or Viewer to {{ current_user.organization.name }}.</p>
+    </div>
+    <a href="{{ url_for('admin.dashboard') }}" class="btn secondary">Back to Console</a>
+</div>
+
+<section class="panel profile-panel">
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="name">Full name</label>
+        <input type="text" id="name" name="name" placeholder="User's full name" required maxlength="100">
+
+        <label for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="user@example.com" required maxlength="255">
+
+        <label for="role">Assign role</label>
+        <select id="role" name="role" required>
+            <option value="owner" selected>Owner</option>
+            <option value="viewer">Viewer</option>
+            <option value="admin">Admin</option>
+        </select>
+        <small class="muted" style="display:block; margin-top:4px; margin-bottom:12px;">
+            Owners manage their own documents. Viewers access shared documents. Admins manage company users and documents.
+        </small>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" minlength="8" placeholder="At least 8 characters" required>
+
+        <button type="submit" class="btn primary" style="margin-top:16px;">Create account</button>
+    </form>
+</section>
+{% endblock %}

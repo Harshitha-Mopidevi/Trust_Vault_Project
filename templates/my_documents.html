@@ -1,0 +1,629 @@
+{% extends 'base.html' %}
+
+{% block page_heading %}My Documents{% endblock %}
+
+{% block content %}
+
+<div class="welcome-row">
+    <div>
+        <h2>Your document library</h2>
+        <p class="muted">
+            Manage your files and documents shared with you.
+        </p>
+    </div>
+
+    {% if current_user.role in ['owner', 'admin'] %}
+        <a class="btn primary" href="{{ url_for('documents.upload') }}">
+            ＋ Upload document
+        </a>
+    {% endif %}
+</div>
+
+<section class="panel">
+
+    <!-- Search and category filter -->
+    <form class="toolbar" method="get">
+        <input
+            type="search"
+            name="q"
+            value="{{ request.args.get('q', '') }}"
+            placeholder="Search documents..."
+        >
+
+        <select name="category">
+            <option value="">All categories</option>
+
+            {% for c in categories %}
+                <option
+                    value="{{ c }}"
+                    {% if request.args.get('category') == c %}selected{% endif %}
+                >
+                    {{ c }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn secondary">
+            Filter
+        </button>
+    </form>
+
+
+    <!-- Document table -->
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Document</th>
+                    <th>Category</th>
+                    <th>Owner</th>
+                    <th>Uploaded</th>
+                    <th>Access</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for doc in docs %}
+
+                <tr>
+
+                    <!-- Document information -->
+                    <td>
+                        <span class="file-icon">FILE</span>
+
+                        <div class="file-name">
+                            {{ doc.title }}
+                            <small>{{ doc.original_name }}</small>
+                        </div>
+                    </td>
+
+                    <td>{{ doc.category }}</td>
+
+                    <td>{{ doc.owner.name }}</td>
+
+                    <td>{{ doc.uploaded_at.strftime('%b %d, %Y') }}</td>
+
+                    <td>
+                        <span class="tag
+                            {% if doc.owner_id == current_user.id %}
+                                green-tag
+                            {% else %}
+                                blue-tag
+                            {% endif %}
+                        ">
+                            {% if doc.owner_id == current_user.id %}
+                                Owner
+                            {% elif current_user.role == 'admin' %}
+                                Admin
+                            {% else %}
+                                Shared
+                            {% endif %}
+                        </span>
+                    </td>
+
+                    <!-- Document actions -->
+                    <td class="actions">
+
+                        <!-- View -->
+                        <a
+                            class="icon-btn"
+                            title="View document"
+                            aria-label="View document"
+                            href="{{ url_for('documents.view_document', doc_id=doc.id) }}"
+                        >◉</a>
+
+
+                        <!-- Download only when allowed -->
+                        {% set my_share = doc.shares
+                            | selectattr('user_id', 'equalto', current_user.id)
+                            | first
+                        %}
+
+                        {% if current_user.role == 'admin'
+                            or doc.owner_id == current_user.id
+                            or (my_share and my_share.can_download) %}
+
+                            <a
+                                class="icon-btn"
+                                title="Download document"
+                                aria-label="Download document"
+                                href="{{ url_for('documents.download_document', doc_id=doc.id) }}"
+                            >↓</a>
+
+                        {% endif %}
+
+
+                        <!-- Admin and Owner management -->
+                        {% if current_user.role == 'admin'
+                            or doc.owner_id == current_user.id %}
+
+                            <details class="share-menu">
+
+                                <summary
+                                    class="icon-btn"
+                                    title="Manage document"
+                                    aria-label="Manage document"
+                                >•••</summary>
+
+                                <div class="share-popover">
+
+                                    <!-- Grant access -->
+                                     <button
+    type="button"
+    class="close-access-btn"
+    id="closeGrantAccessBtn"
+    aria-label="Close Grant Access panel"
+    title="Close">
+    &times;
+</button>
+                                    <form
+                                        method="post"
+                                        action="{{ url_for('documents.share_document', doc_id=doc.id) }}"
+                                        class="share-form"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <strong>Grant access</strong>
+
+                                        <label for="share-user-search-{{ doc.id }}">
+                                            Search or select a company user
+                                        </label>
+
+                                        <input
+                                            type="search"
+                                            id="share-user-search-{{ doc.id }}"
+                                            class="share-user-search"
+                                            placeholder="Search by name or email..."
+                                            autocomplete="off"
+                                            aria-controls="share-user-results-{{ doc.id }}"
+                                            aria-expanded="false"
+                                            data-share-user-search
+                                            data-results-id="share-user-results-{{ doc.id }}"
+                                            data-hidden-id="share-user-id-{{ doc.id }}"
+                                        >
+
+                                        <input
+                                            type="hidden"
+                                            id="share-user-id-{{ doc.id }}"
+                                            name="user_id"
+                                            required
+                                        >
+
+                                        <div
+                                            id="share-user-results-{{ doc.id }}"
+                                            class="share-user-results"
+                                            role="listbox"
+                                            aria-label="Matching company users"
+                                            hidden
+                                        >
+                                            {% for user in users
+                                                if user.id != current_user.id
+                                                and user.organization_id == current_user.organization_id
+                                                and user.active
+                                                and user.role in ['owner', 'viewer'] %}
+                                                <button
+                                                    type="button"
+                                                    class="share-user-option"
+                                                    role="option"
+                                                    data-user-id="{{ user.id }}"
+                                                    data-user-label="{{ user.name }} ({{ user.email }})"
+                                                    data-search="{{ (user.name ~ ' ' ~ user.email)|lower }}"
+                                                >
+                                                    <span>{{ user.name }}</span>
+                                                    <small>{{ user.email }}</small>
+                                                </button>
+                                            {% endfor %}
+                                            <p class="no-user-results" hidden>
+                                                No matching users found.
+                                            </p>
+                                        </div>
+
+                                        <small
+                                            id="selected-user-{{ doc.id }}"
+                                            class="muted share-user-selection"
+                                            data-share-user-selection
+                                            hidden
+                                        ></small>
+
+                                        {% if not users %}
+                                            <small class="muted">
+                                                No eligible users found in your organization.
+                                                Register another active Owner or Viewer account,
+                                                or ask your administrator to check the user accounts.
+                                            </small>
+                                        {% endif %}
+
+                                        <script>
+                                        (function () {
+                                            const input = document.getElementById("share-user-search-{{ doc.id }}");
+                                            if (!input || input.dataset.initialized === "true") return;
+                                            input.dataset.initialized = "true";
+
+                                            const results = document.getElementById(input.dataset.resultsId);
+                                            const hiddenInput = document.getElementById(input.dataset.hiddenId);
+                                            const selectedLabel = document.getElementById("selected-user-{{ doc.id }}");
+
+                                            if (!results || !hiddenInput) return;
+
+                                            const options = Array.from(results.querySelectorAll(".share-user-option"));
+                                            const emptyMessage = results.querySelector(".no-user-results");
+
+                                            function filterUsers() {
+                                                const query = input.value.trim().toLowerCase();
+                                                let matchCount = 0;
+
+                                                options.forEach(function (option) {
+                                                    const matches = option.dataset.search.includes(query);
+                                                    option.hidden = !matches;
+                                                    if (matches) matchCount++;
+                                                });
+
+                                                if (emptyMessage) emptyMessage.hidden = matchCount > 0;
+                                                results.hidden = false;
+                                                input.setAttribute("aria-expanded", "true");
+                                            }
+
+                                            input.addEventListener("focus", filterUsers);
+
+                                            input.addEventListener("input", function () {
+                                                hiddenInput.value = "";
+                                                if (selectedLabel) {
+                                                    selectedLabel.textContent = "";
+                                                    selectedLabel.hidden = true;
+                                                }
+                                                filterUsers();
+                                            });
+
+                                            options.forEach(function (option) {
+                                                option.addEventListener("click", function () {
+                                                    hiddenInput.value = option.dataset.userId;
+                                                    input.value = option.dataset.userLabel;
+
+                                                    if (selectedLabel) {
+                                                        selectedLabel.textContent = "Selected user: " + option.dataset.userLabel;
+                                                        selectedLabel.hidden = false;
+                                                    }
+
+                                                    results.hidden = true;
+                                                    input.setAttribute("aria-expanded", "false");
+                                                });
+                                            });
+
+                                            document.addEventListener("click", function (event) {
+                                                if (!input.contains(event.target) && !results.contains(event.target)) {
+                                                    results.hidden = true;
+                                                    input.setAttribute("aria-expanded", "false");
+                                                }
+                                            });
+
+                                            const form = input.closest("form");
+                                            if (form) {
+                                                form.addEventListener("submit", function (event) {
+                                                    if (!hiddenInput.value || !options.some(function (option) {
+                                                        return option.dataset.userId === hiddenInput.value;
+                                                    })) {
+                                                        event.preventDefault();
+                                                        alert("Please search for and select a user from the list.");
+                                                        input.focus();
+                                                    }
+                                                });
+                                            }
+
+                                            input.addEventListener("keydown", function (event) {
+                                                if (event.key === "Escape") {
+                                                    results.hidden = true;
+                                                    input.setAttribute("aria-expanded", "false");
+                                                }
+                                            });
+                                        })();
+                                        </script>
+
+                                        <label class="mini-check">
+                                            <input
+                                                type="checkbox"
+                                                name="can_edit"
+                                                value="on"
+                                            >
+                                            Allow editing document details
+                                        </label>
+
+                                        <label class="mini-check">
+                                            <input
+                                                type="checkbox"
+                                                name="can_download"
+                                                value="on"
+                                            >
+                                            Allow download
+                                        </label>
+
+                                        <button
+                                            type="submit"
+                                            class="btn primary small"
+                                        >
+                                            Grant access
+                                        </button>
+
+                                    </form>
+
+
+                                    <div class="share-divider"></div>
+
+
+                                    <!-- Current shares -->
+                                    <strong>Current access</strong>
+
+                                    {% for share in shares_by_doc.get(doc.id, []) %}
+
+                                        <div class="share-entry">
+
+                                            <span>
+                                                {{ share.user.name }}
+
+                                                <small>
+                                                    View
+                                                    {% if share.can_edit %}
+                                                        · Edit
+                                                    {% endif %}
+                                                    {% if share.can_download %}
+                                                        · Download
+                                                    {% endif %}
+                                                </small>
+                                            </span>
+
+                                            <form
+                                                method="post"
+                                                action="{{ url_for('documents.revoke_share', doc_id=doc.id, user_id=share.user_id) }}"
+                                                onsubmit="return confirm('Revoke this user’s access to the document?');"
+                                            >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="csrf_token"
+                                                    value="{{ csrf_token() }}"
+                                                >
+
+                                                <button
+                                                    type="submit"
+                                                    class="danger-link"
+                                                >
+                                                    Revoke
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    {% else %}
+
+                                        <p class="muted">
+                                            No one else has access.
+                                        </p>
+
+                                    {% endfor %}
+
+
+                                    <div class="share-divider"></div>
+
+
+                                    <!-- Edit document details -->
+                                    <strong>Edit document details</strong>
+
+                                    <form
+                                        method="post"
+                                        action="{{ url_for('documents.edit_document', doc_id=doc.id) }}"
+                                        class="share-form"
+                                    >
+
+                                        <input
+                                            type="hidden"
+                                            name="csrf_token"
+                                            value="{{ csrf_token() }}"
+                                        >
+
+                                        <label for="title-{{ doc.id }}">
+                                            Title
+                                        </label>
+
+                                        <input
+                                            id="title-{{ doc.id }}"
+                                            type="text"
+                                            name="title"
+                                            value="{{ doc.title }}"
+                                            required
+                                            maxlength="180"
+                                        >
+
+                                        <label for="category-{{ doc.id }}">
+                                            Category
+                                        </label>
+
+                                        <select
+                                            id="category-{{ doc.id }}"
+                                            name="category"
+                                        >
+
+                                            {% for c in categories %}
+
+                                                <option
+                                                    value="{{ c }}"
+                                                    {% if doc.category == c %}selected{% endif %}
+                                                >
+                                                    {{ c }}
+                                                </option>
+
+                                            {% endfor %}
+
+                                        </select>
+
+                                        <button
+                                            type="submit"
+                                            class="btn secondary small"
+                                        >
+                                            Save details
+                                        </button>
+
+                                    </form>
+
+
+                                    <!-- Delete action at the bottom -->
+                                    <div class="document-danger-zone">
+
+                                        <div class="share-divider"></div>
+
+                                        <strong>Danger zone</strong>
+
+                                        <p class="muted">
+                                            Permanently delete this document.
+                                            This action cannot be undone.
+                                        </p>
+
+                                        <form
+                                            method="post"
+                                            action="{{ url_for('documents.delete_document', doc_id=doc.id) }}"
+                                            onsubmit="return confirm('Are you sure you want to delete this document permanently?');"
+                                        >
+
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <button
+                                                type="submit"
+                                                class="delete-document-btn"
+                                            >
+                                                Delete document
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </details>
+
+                        {% elif current_user.role == 'viewer' %}
+
+                            <!-- Viewer may edit details only if explicitly permitted -->
+                            {% if my_share and my_share.can_edit %}
+
+                                <details class="share-menu">
+
+                                    <summary
+                                        class="icon-btn"
+                                        title="Edit document details"
+                                    >
+                                        Edit
+                                    </summary>
+
+                                    <div class="share-popover">
+
+                                        <strong>Edit document details</strong>
+
+                                        <form
+                                            method="post"
+                                            action="{{ url_for('documents.edit_document', doc_id=doc.id) }}"
+                                            class="share-form"
+                                        >
+
+                                            <input
+                                                type="hidden"
+                                                name="csrf_token"
+                                                value="{{ csrf_token() }}"
+                                            >
+
+                                            <label for="viewer-title-{{ doc.id }}">
+                                                Title
+                                            </label>
+
+                                            <input
+                                                id="viewer-title-{{ doc.id }}"
+                                                name="title"
+                                                value="{{ doc.title }}"
+                                                required
+                                                maxlength="180"
+                                            >
+
+                                            <label for="viewer-category-{{ doc.id }}">
+                                                Category
+                                            </label>
+
+                                            <select
+                                                id="viewer-category-{{ doc.id }}"
+                                                name="category"
+                                            >
+
+                                                {% for c in categories %}
+
+                                                    <option
+                                                        value="{{ c }}"
+                                                        {% if doc.category == c %}selected{% endif %}
+                                                    >
+                                                        {{ c }}
+                                                    </option>
+
+                                                {% endfor %}
+
+                                            </select>
+
+                                            <button
+                                                type="submit"
+                                                class="btn secondary small"
+                                            >
+                                                Save details
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </details>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+            {% else %}
+
+                <tr>
+                    <td colspan="6" class="empty-cell">
+                        No documents found. Try a different search or upload a file.
+                    </td>
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<script>
+/* Close the current document's management popover with its X button. */
+document.addEventListener("click", function (event) {
+    const closeButton = event.target.closest("[data-close-share-menu]");
+    if (!closeButton) return;
+
+    const menu = closeButton.closest("details.share-menu");
+    if (menu) {
+        menu.open = false;
+    }
+});
+</script>
+
+{% endblock %}
